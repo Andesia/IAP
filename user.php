@@ -54,6 +54,7 @@
                 $stm = $pdo->prepare("insert into user (full_name, email, password, city) values(?,?,?,?)");
                 $stm->execute([$this->getFullName(),$this->getEmail(),$hashedPassword,$this->getCity()]);
                 $stm = null;
+                header("Location: login.php");
                 return "Registration was successful";
             }catch (PDOException $ex){
                 return $ex->getMessage();
@@ -63,6 +64,38 @@
             //factor out the profile picture. 
         }
         public function login($pdo) {
+            try 
+		    	{
+		    		$stm = $pdo->prepare('SELECT email, password FROM user WHERE email = ?');
+		    		$stm->execute([$this->getEmail()]);
+		    		
+		    		$row = $stm->fetch();
+		    		   	
+		    		if ($row == null)
+		    		{
+		    			return "Account absent";
+		    		}
+		    		else
+		    		{
+		    			if(password_verify($this->getPassword(),$row['password']))
+			    		{
+			    			session_start();
+							$_SESSION['email'] = $row['email'];
+			    			
+			    			echo 'Welcome '.$_SESSION['email'];
+                            echo '<br><br>';
+                        
+			    			echo 'Correct. Welcome to the landing page...';
+			    			header("Location: landingpage.php");
+			    		}
+			    		else
+			    		{
+			    			return "Your username or password is incorrect";
+			    		}
+			    	}  		
+		    	} catch (PDOException $e) {
+		    		return $e->getMessage();
+		    	}
 
         }
         public function changePassword($pdo) {
